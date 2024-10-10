@@ -23,7 +23,9 @@ from config import (
     DSN,
     CONFIG_DIR,
     WALLET_LOCATION,
-    WALLET_PASSWORD
+    WALLET_PASSWORD,
+    LOGO_PATH,
+
 )
 
 # Configure logger
@@ -130,6 +132,12 @@ def render_sidebar_forms():
         st.session_state.top_n = st.slider("TOP_N", 1, 10, step=1, value=st.session_state.top_n)
         st.form_submit_button("Submit", type="primary", on_click=handle_form_submission, use_container_width=True)
 
+if LOGO_PATH:
+    # Display logo
+    st.logo(LOGO_PATH,
+            size="large",
+
+            )
 render_sidebar_forms()
 
 # Function to save uploaded files to the specified directory
