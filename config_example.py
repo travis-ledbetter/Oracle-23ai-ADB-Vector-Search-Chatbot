@@ -1,17 +1,20 @@
+########### IMPORTANT: Change name of this file to config.py ##############
+
+
 # Database connection details
-DB_USER = "" # Username AI_USER
-DB_PWD = "" # Pasword
-DB_HOST_IP = "adb.us-chicago-1.oraclecloud.com" # 
+DB_USER = "AIUSER" # Username
+DB_PWD = "your-password" # Password
+DB_HOST_IP = "adb.us-chicago-1.oraclecloud.com" # stable
 DB_SERVICE = "livelabvs_medium"
-CONFIG_DIR = ""
+CONFIG_DIR = "/wallet/config/dir" # likely same as below
 WALLET_LOCATION = "/path/to/your/wallet"
-WALLET_PASSWORD = ""
+WALLET_PASSWORD = "your_wallet_password" # 
 
 # GenAI configurations
-PROFILE_NAME = ""
-COMPARTMENT_OCID = "" # same compartment as adb
+PROFILE_NAME = "DEFAULT" # OCI Authentication profile name change if not DEFAULT
+COMPARTMENT_OCID = "<your-compartment-ocid>" # same compartment as ADB
 ENDPOINT = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com" # stable
-COHERE_API_KEY = "" # Reranker
+COHERE_API_KEY = "<your-cohere-api-key>" # Cohere Reranker api key: https://cohere.com
 
 # Verbosity setting
 VERBOSE = False
@@ -67,3 +70,4 @@ LA2_ENABLE_INDEX = False
 
 # UI settings
 ADD_REFERENCES = True
+LOGO_PATH = ""
