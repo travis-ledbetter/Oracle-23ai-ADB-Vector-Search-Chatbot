@@ -330,7 +330,8 @@ def main():
                     else:
                         output = no_stream_output(response)
                 st.session_state.messages.append({"role": "assistant", "content": output})
-                st.session_state.chat_history.append(ChatMessage(role="assistant", content=output ))
+                if st.session_state.enable_rag:
+                    st.session_state.chat_history.append(ChatMessage(role="assistant", content=output))
 
         except Exception as e:
             logger.error("An error occurred: " + str(e))
