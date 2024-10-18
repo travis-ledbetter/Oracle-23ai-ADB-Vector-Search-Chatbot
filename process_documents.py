@@ -25,6 +25,7 @@ from llama_index.embeddings.oci_genai import OCIGenAIEmbeddings
 from oci_utils import load_oci_config
 
 from config import (
+    PROFILE_NAME,
     EMBED_MODEL,
     TOKENIZER,
     EMBEDDINGS_BITS,
@@ -371,6 +372,7 @@ def main():
         # api_keys_config = ads.auth.api_keys(oci_config)
 
         embed_model = OCIGenAIEmbeddings(
+            auth_profile=PROFILE_NAME,
             compartment_id=COMPARTMENT_OCID,
             model_name=EMBED_MODEL,
             truncate="END",
