@@ -365,11 +365,7 @@ def main():
         print("List of books to be loaded and indexed:")
         for file in files_to_process:
             print(file)
-        print("")
-
-        # TODO: do we even need this line anymore?
-        # oci_config = load_oci_config()
-        # api_keys_config = ads.auth.api_keys(oci_config)
+        
 
         embed_model = OCIGenAIEmbeddings(
             auth_profile=PROFILE_NAME,

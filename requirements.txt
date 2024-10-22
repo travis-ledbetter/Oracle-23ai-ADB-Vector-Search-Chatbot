@@ -31,3 +31,4 @@ uri-template
 watchdog
 webcolors
 werkzeug
+pandas

@@ -93,7 +93,6 @@ def oracle_query(embed_query: List[float], top_k: int, verbose=True, approximate
         VectorStoreQueryResult: Object containing the query results, including nodes, similarities, and ids.
     """
     start_time = time.time()
-    # DSN = f"{DB_HOST_IP}/{DB_SERVICE}"
 
     try:
         with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN,wallet_location=WALLET_LOCATION, config_dir = CONFIG_DIR, wallet_password=WALLET_PASSWORD) as connection:
