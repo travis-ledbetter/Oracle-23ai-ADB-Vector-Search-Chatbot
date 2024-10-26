@@ -16,6 +16,10 @@ COMPARTMENT_OCID = "<your-compartment-ocid>" # same compartment as ADB
 ENDPOINT = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com" # stable
 COHERE_API_KEY = "<your-cohere-api-key>" # Cohere Reranker api key: https://cohere.com
 
+# Chat History Storage
+## This is the default value, you can change this if you have another table or changed 
+## create_tables.sql
+STORAGE_TABLE = "vector_chat_history"
 # Verbosity setting
 VERBOSE = False
 
