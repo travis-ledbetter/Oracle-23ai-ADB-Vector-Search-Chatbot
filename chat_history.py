@@ -16,9 +16,14 @@ from config import(
     DSN,
     CONFIG_DIR,
     WALLET_LOCATION,
-    WALLET_PASSWORD
+    WALLET_PASSWORD,
+    STORAGE_TABLE,
 )
 
+# Method: CheckForHistory()
+# Purpose: This method will determine if the user already has history stored in the
+#          database by looking for a stored cookie.
+# Returns: str(user_id) | False
 def CheckForHistory():
     controller = CookieController()
 
@@ -28,6 +33,9 @@ def CheckForHistory():
     else:
         return False
 
+# Method: StoreChatHistory()
+# Purpose: This method will either create a new chat history for a new user, or append
+#          the most recent chat history onto a returning user's stored history.
 def StoreChatHistory(user_id = None, history = None):
     if not history:
         return
@@ -53,17 +61,16 @@ def StoreChatHistory(user_id = None, history = None):
         controller.set('vector_db_chat_history',random_uuid)
         pickled_data = pickle.dumps(data)
         cursor = connection.cursor()
-        cursor.execute("insert into vector_chat_history values (:num,:hist)",[random_uuid,pickled_data])
+        cursor.execute("insert into {} values (:num,:hist)".format(STORAGE_TABLE),[random_uuid,pickled_data])
         connection.commit()
         cursor.close()
     else:
         cursor = connection.cursor()
-        cursor.execute("select history from vector_chat_history where uuid = :num",[user_id])
+        cursor.execute("select history from {} where uuid = :num".format(STORAGE_TABLE),[user_id])
 
         row = cursor.fetchone()
         row = row[0].read()
         data = pickle.loads(row)
-
 
         data_user = serialize(history[len(history)-2])
         data_ai = serialize(history[len(history)-1])
@@ -71,12 +78,15 @@ def StoreChatHistory(user_id = None, history = None):
         data.append(data_ai)
 
         pickled_data = pickle.dumps(data)
-        cursor.execute("update vector_chat_history set history = :hist where uuid = :num",[pickled_data,user_id])
+        cursor.execute("update {} set history = :hist where uuid = :num".format(STORAGE_TABLE),[pickled_data,user_id])
         connection.commit()
         cursor.close()
 
     connection.close()
 
+# Method: serialize()
+# Purpose: This method takes a ChatMessage object and returns it in a serialized form.
+# Returns: dict(new_obj)
 def serialize(obj):
     if not isinstance(obj,ChatMessage):
         return
