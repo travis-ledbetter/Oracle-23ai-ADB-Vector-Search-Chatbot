@@ -55,7 +55,7 @@ def initialize_session_state():
         "enable_rag": True,
         "similarity": 0.5,
         "select_model": None,
-        "chat_history": []
+        "chat_history": [],
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -76,11 +76,11 @@ processed_dir.mkdir(parents=True, exist_ok=True)
 st.markdown("<h1 style='text-align: center;'>Oracle 23ai Vector Search Assistant</h1>", unsafe_allow_html=True)
 print()
 # Check unique files present in the database
-connection = oracledb.connect(user=DB_USER,
-                              password=DB_PWD,
-                              config_dir=CONFIG_DIR,
-                              dsn=DSN,
-                              wallet_location=WALLET_LOCATION,
+connection = oracledb.connect(user=DB_USER, 
+                              password=DB_PWD, 
+                              config_dir=CONFIG_DIR, 
+                              dsn=DSN, 
+                              wallet_location=WALLET_LOCATION, 
                               wallet_password=WALLET_PASSWORD)
 cursor = connection.cursor()
 cursor.execute("SELECT DISTINCT name FROM books")
@@ -240,12 +240,13 @@ def no_stream_output(response):
                 similarity_score >= st.session_state.similarity
                 for similarity_score in similarity_scores
             ):
-                output += "\n\nRef.:\n\n"
+                # output += "\n\nRef.:\n\n"
                 # logger.info(source_nodes)
                 for node in source_nodes:
                     similarity_score = float(node.node.metadata.get("Similarity Score", 0))
                     if similarity_score >= st.session_state.similarity:
-                        output += str(node.node.metadata).replace("{", "").replace("}", "") + "  \n"
+                        # output += str(node.node.metadata).replace("{", "").replace("}", "") + "  \n"
+                        pass
             else:
                 output = "No reference document with such similarity score found."
         else:
@@ -265,11 +266,12 @@ def stream_output(response):
     for text in response.response_gen:
         output += text
         text_placeholder.markdown(output, unsafe_allow_html=True)
-    if ADD_REFERENCES:
-        output += "\n\n Ref.:\n\n"
-        for node in response.source_nodes:
-            output += str(node.metadata).replace("{", "").replace("}", "") + "  \n"
-        text_placeholder.markdown(output, unsafe_allow_html=True)
+    # if ADD_REFERENCES:
+        # output += "\n\n Ref.:\n\n"
+        # for node in response.source_nodes:
+        #    s = str(node.metadata).replace("{", "").replace("}", "") + "  \n"
+        #    output += s
+        # text_placeholder.markdown(output, unsafe_allow_html=True)
     return output
 
 # Main function to run the Streamlit app
@@ -301,8 +303,7 @@ def main():
 
         try:
             logger.info("Calling RAG chain..")
-            logger.info(
-                f"top_k= {st.session_state.top_k},max_tokens= {st.session_state.max_tokens}, temperature= {st.session_state.temperature},top_n= {st.session_state.top_n},enable_rag= {st.session_state.enable_rag},similarity = {st.session_state.similarity}")
+            f"top_k= {st.session_state.top_k}, type= {type(st.session_state.top_k)}, max_tokens= {st.session_state.max_tokens}, temperature= {st.session_state.temperature},top_n= {st.session_state.top_n},enable_rag= {st.session_state.enable_rag},similarity = {st.session_state.similarity}")
 
             with st.spinner("Waiting..."):
                 time_start = time.time()
@@ -320,10 +321,33 @@ def main():
                 else:
                     response = chat_engine.llm_chat(question)
 
+                nodes = response.source_nodes
+                import pandas as pd
+                # Create a list of dictionaries for each node's metadata
+                data = []
+                for index, node in enumerate(nodes, start=1):
+                    metadata = node.metadata
+                    file_name = metadata.get('file_name', 'N/A')
+                    page_number = metadata.get('page#', 'N/A')
+                    similarity_score = metadata.get('Similarity Score', 'N/A')
+                    data.append({
+                        "File Name": file_name,
+                        "Page Number": page_number,
+                        "Similarity Score": f"{similarity_score:.2f}"
+                    })
+                # Convert the list of dictionaries to a DataFrame
+                df = pd.DataFrame(data)
+                # Drop the index column before displaying
+                df.index += 1
+                # Calculate elapsed time
 
                 time_elapsed = time.time() - time_start
                 logger.info(f"Elapsed time: {round(time_elapsed, 1)} sec.")
 
+                # Display the DataFrame as a table inside the expander with elapsed time
+                expander = st.expander(f"Found {len(nodes)} relevant documents in {round(time_elapsed, 1)} seconds:")
+                expander.table(df)
+                
                 str_token1 = f"LLM Prompt Tokens: {st.session_state.token_counter.prompt_llm_token_count if st.session_state.enable_rag else 'N/A'}"
                 str_token2 = f"LLM Completion Tokens: {st.session_state.token_counter.completion_llm_token_count if st.session_state.enable_rag else 'N/A'}"
                 logger.info(str_token1)
@@ -338,6 +362,7 @@ def main():
                 st.session_state.messages.append({"role": "assistant", "content": output})
                 if st.session_state.enable_rag:
                     st.session_state.chat_history.append(ChatMessage(role="assistant", content=output))
+                    
         except Exception as e:
             logger.error("An error occurred: " + str(e))
             st.error("An error occurred: " + str(e))
