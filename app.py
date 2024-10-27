@@ -14,6 +14,8 @@ from pathlib import Path
 import chat_engine
 from llama_index.core.llms import ChatMessage
 import oracledb
+import chat_history
+#import chat_erase
 from config import (
     ADD_REFERENCES,
     STREAM_CHAT,
@@ -280,6 +282,9 @@ def main():
     # Initialize session state if not already done
     if "messages" not in st.session_state:
         reset_conversation()
+    ######## Travis
+    stored_chat_history_uuid = chat_history.CheckForHistory()
+    ######## ------
 
     with st.spinner("Initializing RAG chain..."):
         st.session_state.chat_engine, st.session_state.token_counter = create_chat_engine()
@@ -294,10 +299,11 @@ def main():
         st.session_state.messages.append({"role": "user", "content": question})
         user_message = ChatMessage(role="user", content=question)
         st.session_state.chat_history.append(user_message)
+        print(st.session_state.messages)
+
         try:
             logger.info("Calling RAG chain..")
-            logger.info(
-                f"top_k= {st.session_state.top_k}, type= {type(st.session_state.top_k)}, max_tokens= {st.session_state.max_tokens}, temperature= {st.session_state.temperature},top_n= {st.session_state.top_n},enable_rag= {st.session_state.enable_rag},similarity = {st.session_state.similarity}")
+            f"top_k= {st.session_state.top_k}, type= {type(st.session_state.top_k)}, max_tokens= {st.session_state.max_tokens}, temperature= {st.session_state.temperature},top_n= {st.session_state.top_n},enable_rag= {st.session_state.enable_rag},similarity = {st.session_state.similarity}")
 
             with st.spinner("Waiting..."):
                 time_start = time.time()
@@ -315,10 +321,8 @@ def main():
                 else:
                     response = chat_engine.llm_chat(question)
 
-                
                 nodes = response.source_nodes
                 import pandas as pd
-
                 # Create a list of dictionaries for each node's metadata
                 data = []
                 for index, node in enumerate(nodes, start=1):
@@ -331,21 +335,19 @@ def main():
                         "Page Number": page_number,
                         "Similarity Score": f"{similarity_score:.2f}"
                     })
-
                 # Convert the list of dictionaries to a DataFrame
                 df = pd.DataFrame(data)
-
                 # Drop the index column before displaying
                 df.index += 1
-
                 # Calculate elapsed time
+
                 time_elapsed = time.time() - time_start
                 logger.info(f"Elapsed time: {round(time_elapsed, 1)} sec.")
 
                 # Display the DataFrame as a table inside the expander with elapsed time
                 expander = st.expander(f"Found {len(nodes)} relevant documents in {round(time_elapsed, 1)} seconds:")
                 expander.table(df)
-
+                
                 str_token1 = f"LLM Prompt Tokens: {st.session_state.token_counter.prompt_llm_token_count if st.session_state.enable_rag else 'N/A'}"
                 str_token2 = f"LLM Completion Tokens: {st.session_state.token_counter.completion_llm_token_count if st.session_state.enable_rag else 'N/A'}"
                 logger.info(str_token1)
@@ -360,10 +362,14 @@ def main():
                 st.session_state.messages.append({"role": "assistant", "content": output})
                 if st.session_state.enable_rag:
                     st.session_state.chat_history.append(ChatMessage(role="assistant", content=output))
-
+                    
         except Exception as e:
             logger.error("An error occurred: " + str(e))
             st.error("An error occurred: " + str(e))
+
+        ######## Travis
+        chat_history.StoreChatHistory(stored_chat_history_uuid, st.session_state.chat_history)
+        ######## ------
 
         # Force Streamlit to immediately update the UI
         if not st.session_state.enable_rag:
