@@ -33,4 +33,4 @@ webcolors
 werkzeug
 pandas
 streamlit-cookies-controller
-redis-py
+redis
